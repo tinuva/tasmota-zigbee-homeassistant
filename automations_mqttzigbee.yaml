@@ -7,8 +7,12 @@
 ##Sample motion sensor
 #binary_sensor:
 #- platform: mqtt
-#  name: "LivingRM Zigbee Sensor"
-#  state_topic: "tele/zigbee/0x1234/Occupancy"
+#  name: "Zigbee Motion Sensor"
+#  state_topic: "tele/zigbee/0x1234/Occupancy"  
+#  json_attributes_topic: "tele/zigbee/0xF874/Attr"
+#  off_delay: 60
+#  expire_after: 7200   #v0.100 and above
+#  device_class: motion
 #  
 ##Sample Temperature/Humidity/Pressure/Illuminance sensor 
 #sensor:  
@@ -44,7 +48,7 @@
       topic: 'tele/zigbee/RESULT'
   condition:
     - condition: template
-      value_template: "{{ trigger.payload_json[trigger.payload_json | first] | first == 'Humidity' }}"
+      value_template: "{{ 'Humidity' in trigger.payload }}"
   action:
     - service: mqtt.publish
       data_template:
@@ -59,7 +63,7 @@
       topic: 'tele/zigbee/RESULT'
   condition:
     - condition: template
-      value_template: "{{ trigger.payload_json[trigger.payload_json | first] | first == 'Temperature' }}"
+      value_template: "{{ 'Temperature' in trigger.payload }}"
   action:
     - service: mqtt.publish
       data_template:
@@ -90,7 +94,7 @@
       topic: 'tele/zigbee/RESULT'
   condition:
     - condition: template
-      value_template: "{{ trigger.payload_json[trigger.payload_json | first] | first == 'Illuminance' }}"
+      value_template: "{{ 'Illuminance' in trigger.payload }}"
   action:
     - service: mqtt.publish
       data_template:
@@ -112,3 +116,20 @@
       data_template:
         topic: 'tele/zigbee/{{ trigger.payload_json | first }}/Occupancy'
         payload: 'ON'
+
+- alias: 'MQTT Zigbee Attribute'
+  initial_state: true
+  hide_entity: true
+  trigger:
+    - platform: mqtt
+      topic: 'tele/zigbee/RESULT'
+  condition:
+    - condition: template
+      value_template: "{{ 'Battery' in trigger.payload }}"
+    - condition: template
+      value_template: "{{ 'Voltage' in trigger.payload }}"
+  action:
+    - service: mqtt.publish
+      data_template:
+        topic: 'tele/zigbee/{{ trigger.payload_json | first }}/Attr'
+        payload: '{"voltage":{{ trigger.payload_json[trigger.payload_json | first].Voltage }},"battery level":{{ trigger.payload_json[trigger.payload_json | first].Battery}}}'
