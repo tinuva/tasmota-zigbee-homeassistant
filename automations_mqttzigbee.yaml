@@ -1,0 +1,114 @@
+#automations_mqttzigbee.yaml
+
+#In configuration.yaml add line below
+#automation mqttzigbee: !include automations_mqttzigbee.yaml
+
+##Replace 0x1234 with your device short id
+##Sample motion sensor
+#binary_sensor:
+#- platform: mqtt
+#  name: "LivingRM Zigbee Sensor"
+#  state_topic: "tele/zigbee/0x1234/Occupancy"
+#  
+##Sample Temperature/Humidity/Pressure/Illuminance sensor 
+#sensor:  
+#- platform: mqtt
+#  name: "ZigBee SQ Temperature"
+#  state_topic: "tele/zigbee/0x0EB5/Temperature"
+#  unit_of_measurement: "°C" 
+#  expire_after: 7200
+#  
+#- platform: mqtt
+#  name: "ZigBee SQ Humidity"
+#  state_topic: "tele/zigbee/0x0EB5/Humidity"
+#  unit_of_measurement: "RH%" 
+#  expire_after: 7200
+#  
+#- platform: mqtt
+#  name: "ZigBee SQ Pressure"
+#  state_topic: "tele/zigbee/0x0EB5/Pressure"
+#  unit_of_measurement: "hPa" 
+#  expire_after: 7200
+#  
+#- platform: mqtt
+#  name: "ZigBee Motion Illuminance"
+#  state_topic: "tele/zigbee/0xF874/Illuminance"
+#  unit_of_measurement: "lx" 
+#  expire_after: 7200
+
+- alias: 'MQTT Zigbee Humidity'
+  initial_state: true
+  hide_entity: true
+  trigger:
+    - platform: mqtt
+      topic: 'tele/zigbee/RESULT'
+  condition:
+    - condition: template
+      value_template: "{{ trigger.payload_json[trigger.payload_json | first] | first == 'Humidity' }}"
+  action:
+    - service: mqtt.publish
+      data_template:
+        topic: 'tele/zigbee/{{ trigger.payload_json | first }}/Humidity'
+        payload: '{{ trigger.payload_json[trigger.payload_json | first].Humidity }}'
+
+- alias: 'MQTT Zigbee Temperature'
+  initial_state: true
+  hide_entity: true
+  trigger:
+    - platform: mqtt
+      topic: 'tele/zigbee/RESULT'
+  condition:
+    - condition: template
+      value_template: "{{ trigger.payload_json[trigger.payload_json | first] | first == 'Temperature' }}"
+  action:
+    - service: mqtt.publish
+      data_template:
+        topic: 'tele/zigbee/{{ trigger.payload_json | first }}/Temperature'
+        payload: '{{ trigger.payload_json[trigger.payload_json | first].Temperature }}'
+
+- alias: 'MQTT Zigbee Pressure'
+  initial_state: true
+  hide_entity: true
+  trigger:
+    - platform: mqtt
+      topic: 'tele/zigbee/RESULT'
+  condition:
+    - condition: template
+      value_template: "{{ 'Pressure' in trigger.payload }}"
+  action:
+    - service: mqtt.publish
+      data_template:
+        topic: 'tele/zigbee/{{ trigger.payload_json | first }}/Pressure'
+        payload: '{{ trigger.payload_json[trigger.payload_json | first].Pressure }}'
+
+
+- alias: 'MQTT Zigbee Illuminance'
+  initial_state: true
+  hide_entity: true
+  trigger:
+    - platform: mqtt
+      topic: 'tele/zigbee/RESULT'
+  condition:
+    - condition: template
+      value_template: "{{ trigger.payload_json[trigger.payload_json | first] | first == 'Illuminance' }}"
+  action:
+    - service: mqtt.publish
+      data_template:
+        topic: 'tele/zigbee/{{ trigger.payload_json | first }}/Illuminance'
+        payload: '{{ trigger.payload_json[trigger.payload_json | first].Illuminance }}'
+        retain: true
+        
+- alias: 'MQTT Zigbee Occupancy'
+  initial_state: true
+  hide_entity: true
+  trigger:
+    - platform: mqtt
+      topic: 'tele/zigbee/RESULT'
+  condition:
+    - condition: template
+      value_template: "{{ 'Occupancy' in trigger.payload }}"
+  action:
+    - service: mqtt.publish
+      data_template:
+        topic: 'tele/zigbee/{{ trigger.payload_json | first }}/Occupancy'
+        payload: 'ON'
